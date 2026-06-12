@@ -1,0 +1,228 @@
+<!doctype html>
+
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tra cứu MST</title>
+
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+      }
+
+      h2 {
+        text-align: center;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      th,
+      td {
+        border: 1px solid #ccc;
+        padding: 8px;
+      }
+
+      th {
+        background: #f0f0f0;
+      }
+
+      input {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 5px;
+      }
+
+      button {
+        padding: 6px 12px;
+        cursor: pointer;
+      }
+
+      .toast {
+        visibility: hidden;
+        min-width: 250px;
+        background-color: #28a745; /* Màu xanh lá thành công */
+        color: #fff;
+        text-align: center;
+        border-radius: 4px;
+        padding: 16px;
+        position: fixed;
+        z-index: 1;
+        left: 50%;
+        bottom: 30px;
+        transform: translateX(-50%);
+        font-size: 16px;
+        box-shadow: 0px 4px 10px rgba(0,0,0,0.2);
+      }
+
+      .toast.show {
+        visibility: visible;
+        animation: fadein 0.5s, fadeout 0.5s 2.5s; /* Hiện lên 0.5s, hiện 2s, tắt đi 0.5s */
+      }
+
+      @keyframes fadein {
+        from {bottom: 0; opacity: 0;}
+        to {bottom: 30px; opacity: 1;}
+      }
+
+      @keyframes fadeout {
+        from {bottom: 30px; opacity: 1;}
+        to {bottom: 0; opacity: 0;}
+      }
+    </style>
+  </head>
+
+  <body>
+    <h2>TRA CỨU THÔNG TIN DOANH NGHIỆP</h2>
+    <div id="toastNotification" class="toast">Done!</div>
+
+    <table id="tblData">
+      <thead>
+        <tr>
+          <th>Mã số thuế</th>
+          <th>SĐT</th>
+          <th>Tên công ty</th>
+          <th>Dịch vụ</th>
+          <th>Người xử lý</th>
+          <th>Vấn đề</th>
+          <th>Thao tác</th>
+        </tr>
+      </thead>
+
+      ```
+      <tbody>
+        <tr>
+          <td><input class="mst" /></td>
+          <td><input /></td>
+          <td><input class="tencty" readonly /></td>
+          <td>
+            <select>
+              <option value="HĐ">HĐ</option>
+              <option value="CKS">CKS</option>
+              <option value="BHXH">BHXH</option>
+            </select>
+          </td>
+          <td><input value="Tuấn" /></td>
+          <td><input /></td>
+          <td>
+            <button onclick="traCuu(this)">Tra cứu</button>
+            <button onclick="luuSheet(this)">Lưu</button>
+          </td>
+        </tr>
+      </tbody>
+      ```
+    </table>
+
+    <br />
+
+    <button onclick="themDong()">+ Thêm dòng</button>
+
+    <script>
+      function themDong() {
+        const tbody = document.querySelector("#tblData tbody");
+
+        const row = document.createElement("tr");
+
+        row.innerHTML = `
+        <td><input class="mst"></td>
+        <td><input></td>
+        <td><input class="tencty" readonly></td>
+        <td>
+            <select>
+              <option value="HĐ">HĐ</option>
+              <option value="CKS">CKS</option>
+              <option value="BHXH">BHXH</option>
+            </select>
+          </td>
+        <td><input value="Tuấn"></td>
+        <td><input></td>
+        <td>
+            <button onclick="traCuu(this)">
+                Tra cứu
+            </button>
+            <button onclick="luuSheet(this)">
+                Lưu
+            </button>
+        </td>
+    `;
+
+        tbody.appendChild(row);
+      }
+
+      async function traCuu(btn) {
+        const row = btn.closest("tr");
+
+        const mst = row.querySelector(".mst").value.trim();
+
+        if (!mst) {
+          alert("Vui lòng nhập MST");
+          return;
+        }
+
+        try {
+          const response = await fetch(
+            "api.php?mst=" + encodeURIComponent(mst),
+          );
+
+          const data = await response.json();
+
+          const tenCongTy = data.result.data.thongtinchung.row_NNT.ten_NNT;
+
+          row.querySelector(".tencty").value = tenCongTy;
+        } catch (err) {
+          console.error(err);
+
+          alert("Tra cứu thất bại");
+        }
+      }
+      async function luuSheet(btn) {
+        const row = btn.closest("tr");
+
+        const data = {
+          mst: row.cells[0].querySelector("input").value,
+          sdt: row.cells[1].querySelector("input").value,
+          tencty: row.cells[2].querySelector("input").value,
+          dichvu: row.cells[3].querySelector("select").value,
+          ten: row.cells[4].querySelector("input").value,
+          vande: row.cells[5].querySelector("input").value,
+        };
+
+        btn.disabled = true;
+        btn.innerText = "Đang lưu...";
+
+        try {
+          // THAY ĐOẠN LINK DƯỚI ĐÂY BẰNG LINK WEB APP CỦA BẠN
+          const response = await fetch(
+            "https://script.google.com/macros/s/AKfycbwIwUty7xY4TlvdiMvE-r4bPn2onpELgc_NItULFBORBD6vxfVtKfpyiNhqf5PbMy1w/exec",
+            {
+              method: "POST",
+              mode: "no-cors", // Tránh lỗi chặn CORS từ trình duyệt
+              headers: {
+                "Content-Type": "text/plain", // Ép kiểu text để đi qua cổng bảo mật nhẹ nhàng
+              },
+              body: JSON.stringify(data),
+            },
+          );
+
+          const toast = document.getElementById("toastNotification");
+          toast.className = "toast show";
+          
+          // Sau 3 giây (3000ms), tự động gỡ bỏ class "show" để ẩn thông báo đi
+          setTimeout(function(){ 
+            toast.className = toast.className.replace("toast show", "toast"); 
+          }, 3000);
+        } catch (err) {
+          console.error(err);
+          alert("Gặp lỗi khi lưu!");
+        } finally {
+          btn.disabled = false;
+          btn.innerText = "Lưu";
+        }
+      }
+    </script>
+  </body>
+</html>

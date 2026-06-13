@@ -1,51 +1,76 @@
 <?php
-
 header("Access-Control-Allow-Origin: *");
+header("Content-Type: application/json; charset=UTF-8");
 
-error_reporting(E_ALL);
-
-$mst = $_GET['mst'] ?? '';
+// 1. Lấy mã số thuế từ URL
+$mst = isset($_GET['mst']) ? trim($_GET['mst']) : '';
 
 if (empty($mst)) {
-    echo json_encode([
-        "success" => false,
-        "message" => "Thiếu mã số thuế"
-    ]);
+    echo json_encode(["success" => false, "message" => "Thiếu mã số thuế"]);
     exit;
 }
 
-// TOKEN CỦA BẠN
-$token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6Ijk3MzIiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoiMDQwMTQ4NjkwMTk5OUBLVFQiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9lbWFpbGFkZHJlc3MiOiJtaW5odGh1LjAyOTVAZ21haWwuY29tIiwiQXNwTmV0LklkZW50aXR5LlNlY3VyaXR5U3RhbXAiOiJGSkFFTFhOT0UzT1o2RU4zWFFJWU1WQ0oyWURaQzJPUCIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6WyJLdHQiLCJUZW12ZUtUVCIsIlRlc3RwcSIsIkJJRU5MQUkiXSwiaHR0cDovL3d3dy5hc3BuZXRib2lsZXJwbGF0ZS5jb20vaWRlbnRpdHkvY2xhaW1zL3RlbmFudElkIjoiMiIsIm1zdCI6IjA0MDE0ODY5MDEtOTk5IiwidGVuYW50bmFtZSI6IkhPQURPTjAxIiwic3ViIjoiOTczMiIsImp0aSI6IjM3NGQxMjJhLTJhN2QtNDZjOC1iMTU2LWE3MzYzNDc0ZDhjZSIsImlhdCI6MTc4MTI2NDcyMiwidG9rZW5fdmFsaWRpdHlfa2V5IjoiYTVlNDYzOGEtMTlmYy00NGZkLTlkZjQtOTJmMDhlNjE0ZjVhIiwidXNlcl9pZGVudGlmaWVyIjoiOTczMkAyIiwibmJmIjoxNzgxMjY0NzIyLCJleHAiOjE3ODM4NTY3MjIsImlzcyI6IkFicE5ldDgiLCJhdWQiOiJBYnBOZXQ4In0.e5UAchxXgiJvI88JIfg2Wh-j58vP2-Bu1gylZ7KElAg';
-
-$url = "https://hddt.vin-hoadon.com/api/services/hddt/HoaDon/TraCuuMST?mst=" . urlencode($mst);
+// 2. Cấu hình cURL để gọi API đích
+$url = "https://thongtincongty.vn/api/tax-code/request?taxCode=" . urlencode($mst) . "&returnTo=" . urlencode("/ma-so-thue");
 
 $ch = curl_init();
-
-curl_setopt_array($ch, [
-    CURLOPT_URL => $url,
-    CURLOPT_POST => true,
-    CURLOPT_RETURNTRANSFER => true,
-    CURLOPT_HTTPHEADER => [
-        "Authorization: Bearer " . $token
-    ],
-
-    // Tạm tắt SSL để test local
-    CURLOPT_SSL_VERIFYPEER => false,
-    CURLOPT_SSL_VERIFYHOST => false
+curl_setopt($ch, CURLOPT_URL, $url);
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true); 
+curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); 
+curl_setopt($ch, CURLOPT_USERAGENT, "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
+curl_setopt($ch, CURLOPT_HTTPHEADER, [
+    "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8"
 ]);
 
-$result = curl_exec($ch);
+$html = curl_exec($ch);
 
-if ($result === false) {
+// ĐÃ SỬA: Loại bỏ hàm curl_close() để tránh cảnh báo Deprecated trên PHP 8.5+
 
-    echo json_encode([
-        "success" => false,
-        "error" => curl_error($ch)
-    ]);
-
+if (empty($html)) {
+    echo json_encode(["success" => false, "message" => "Không tải được dữ liệu từ trang nguồn"]);
     exit;
 }
 
-header('Content-Type: application/json; charset=utf-8');
+// 3. Sử dụng thư viện DOM XPath để bóc tách dữ liệu
+$dom = new DOMDocument();
+// Ép DOMDocument đọc đúng định dạng UTF-8 để tránh lỗi font
+@$dom->loadHTML('<?xml encoding="UTF-8">' . $html);
+$xpath = new DOMXPath($dom);
 
-echo $result;
+$tenCongTy = "";
+
+// CHIẾN THUẬT 1: Quét tất cả các ô trong bảng dữ liệu <td>
+$allTds = $dom->getElementsByTagName('td');
+foreach ($allTds as $td) {
+    $text = trim($td->nodeValue);
+    
+    // ĐÃ SỬA: Không dùng mb_strtoupper() nữa. 
+    // Thay vào đó dùng hàm str_contains của PHP 8 để tìm chữ "CÔNG TY" trực tiếp (chấp nhận cả viết hoa viết thường)
+    if ((str_contains($text, 'CÔNG TY') || str_contains($text, 'Công ty') || str_contains($text, 'công ty')) 
+        && !str_contains($text, 'THONGTINCONGTY') && !str_contains($text, 'thongtincongty')) {
+        $tenCongTy = $text;
+        break;
+    }
+}
+
+// CHIẾN THUẬT 2 (DỰ PHÒNG): Nếu quét bảng không ra, tìm trong các thẻ <h5>
+if (empty($tenCongTy)) {
+    $h5s = $dom->getElementsByTagName('h5');
+    foreach ($h5s as $h5) {
+        $text = trim($h5->nodeValue);
+        if (!empty($text) && $text != $mst 
+            && !str_contains($text, 'THONGTINCONGTY') && !str_contains($text, 'thongtincongty')) {
+            $tenCongTy = $text;
+            break;
+        }
+    }
+}
+
+// 4. Trả kết quả JSON sạch về cho giao diện index.html
+if (!empty($tenCongTy)) {
+    echo json_encode(["success" => true, "ten_cong_ty" => $tenCongTy], JSON_UNESCAPED_UNICODE);
+} else {
+    echo json_encode(["success" => false, "message" => "Không bóc tách được tên doanh nghiệp"]);
+}
+?>

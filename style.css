@@ -59,7 +59,7 @@ th {
   text-transform: uppercase;
   padding: 14px 12px;
   border-bottom: 2px solid #e2e8f0;
-  text-align: left;
+  text-align: center;
 }
 
 td {
@@ -114,6 +114,8 @@ button {
   align-items: center;
   justify-content: center;
   gap: 6px;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 button:active {
@@ -134,6 +136,11 @@ button:active {
 .btn-luu {
   background-color: #16a34a;
   color: white;
+  min-width: 90px;
+}
+
+.btn-luu i.fa-spinner {
+  margin-left: 4px;
 }
 
 .btn-luu:hover {
@@ -164,6 +171,7 @@ button:disabled {
 .action-group {
   display: flex;
   gap: 8px;
+  flex-wrap: nowrap;
 }
 
 /* --- Thông báo Toast thành công --- */

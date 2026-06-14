@@ -22,13 +22,13 @@
     <table id="tblData">
       <thead>
         <tr>
-          <th style="width: 15%">Mã số thuế</th>
-          <th style="width: 13%">Số điện thoại</th>
-          <th style="width: 25%">Tên công ty</th>
-          <th style="width: 10%">Dịch vụ</th>
-          <th style="width: 12%">Người xử lý</th>
-          <th style="width: 13%">Vấn đề</th>
-          <th style="width: 12%">Thao tác</th>
+          <th style="width: 12%">Mã số thuế</th>
+          <th style="width: 10%">Số điện thoại</th>
+          <th style="width: 32%">Tên công ty</th>
+          <th style="width: 7%">Dịch vụ</th>
+          <th style="width: 9%">Người xử lý</th>
+          <th style="width: 14%">Vấn đề</th>
+          <th style="width: 16%">Thao tác</th>
         </tr>
       </thead>
       <tbody>
@@ -248,7 +248,8 @@
       };
 
       btn.disabled = true;
-      btn.innerText = "Đang lưu...";
+      // btn.innerText = "Đang lưu...";
+      btn.innerHTML = 'Đang lưu <i class="fa-solid fa-spinner fa-spin"></i>';
 
       try {
         await fetch(
@@ -333,7 +334,6 @@
       // Xóa tên công ty cũ
       row.querySelector(".tencty").value = "";
 
-      // Ẩn thông tin chi tiết
       
     });
   </script>

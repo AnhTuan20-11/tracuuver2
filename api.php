@@ -49,12 +49,16 @@ $xpath = new DOMXPath($dom);
 // 1. Bóc Tên công ty từ thẻ <title>
 if (preg_match('/<title>(.*?)<\/title>/iu', $html, $matches)) {
     $titleText = trim($matches[1]);
-    $parts = explode(' - ', $titleText);
-    if (count($parts) > 1) {
-        $tenCongTy = explode('|', $parts[1])[0];
-    } else {
-        $tenCongTy = explode('|', $titleText)[0];
-    }
+    
+    // BƯỚC CẮT ĐUÔI: Loại bỏ phần sau dấu gạch đứng "|" trước
+    $cleanText = explode('|', $titleText)[0];
+    
+    // BƯỚC CẮT ĐẦU: Xóa MST và dấu gạch ngang ở đầu chuỗi
+    // Regex này dịch là: Tìm từ đầu chuỗi (^) các chữ số, dấu trừ, khoảng trắng cho đến khi gặp dấu gạch ngang " - " đầu tiên thì xóa sạch.
+    $tenCongTy = preg_replace('/^[0-9\s-]+-\s+/iu', '', $cleanText);
+    
+    // Làm sạch khoảng trắng thừa 2 đầu còn sót lại
+    $tenCongTy = trim($tenCongTy);
 }
 
 // 2. Dùng XPath bốc "Người đại diện"

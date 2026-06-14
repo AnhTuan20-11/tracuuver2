@@ -1,98 +1,109 @@
 <!doctype html>
 <html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hệ Thống Tra Cứu & Quản Lý MST</title>
 
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Hệ Thống Tra Cứu & Quản Lý MST</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
+    />
 
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
+    <link
+      rel="icon"
+      type="image/png"
+      href="https://img.icons8.com/ios-filled/50/2563eb/bug.png"
+    />
 
-  <link rel="icon" type="image/png" href="https://img.icons8.com/ios-filled/50/2563eb/bug.png" />
+    <link rel="stylesheet" href="style.css" />
+  </head>
 
-  <link rel="stylesheet" href="style.css" />
-</head>
+  <body>
+    <h2>Báo Cáo</h2>
 
-<body>
-  <h2>Báo Cáo</h2>
+    <div id="toastNotification" class="toast">Đã lưu dữ liệu thành công!</div>
 
-  <div id="toastNotification" class="toast">Đã lưu dữ liệu thành công!</div>
+    <div class="container">
+      <table id="tblData">
+        <thead>
+          <tr>
+            <th style="width: 12%">Mã số thuế</th>
+            <th style="width: 10%">Số điện thoại</th>
+            <th style="width: 32%">Tên công ty</th>
+            <th style="width: 7%">Dịch vụ</th>
+            <th style="width: 9%">Người xử lý</th>
+            <th style="width: 14%">Vấn đề</th>
+            <th style="width: 16%">Thao tác</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><input class="mst" placeholder="Nhập MST..." /></td>
+            <td><input placeholder="Nhập SĐT..." /></td>
+            <td>
+              <input
+                class="tencty"
+                placeholder="Tên công ty tự điền..."
+                readonly
+              />
+            </td>
+            <td>
+              <select>
+                <option value="HĐ">HĐ</option>
+                <option value="CKS">CKS</option>
+                <option value="BHXH">BHXH</option>
+              </select>
+            </td>
+            <td><input value="Tuấn" /></td>
+            <td><input placeholder="Ghi chú vấn đề..." /></td>
+            <td>
+              <div class="action-group">
+                <button class="btn-tracuu" onclick="traCuu(this)">
+                  Tra cứu
+                </button>
+                <button class="btn-luu" onclick="luuSheet(this)">Lưu</button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
 
-  <div class="container">
-    <table id="tblData">
-      <thead>
-        <tr>
-          <th style="width: 12%">Mã số thuế</th>
-          <th style="width: 10%">Số điện thoại</th>
-          <th style="width: 32%">Tên công ty</th>
-          <th style="width: 7%">Dịch vụ</th>
-          <th style="width: 9%">Người xử lý</th>
-          <th style="width: 14%">Vấn đề</th>
-          <th style="width: 16%">Thao tác</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td><input class="mst" placeholder="Nhập MST..." /></td>
-          <td><input placeholder="Nhập SĐT..." /></td>
-          <td>
-            <input class="tencty" placeholder="Tên công ty tự điền..." readonly />
-          </td>
-          <td>
-            <select>
-              <option value="HĐ">HĐ</option>
-              <option value="CKS">CKS</option>
-              <option value="BHXH">BHXH</option>
-            </select>
-          </td>
-          <td><input value="Tuấn" /></td>
-          <td><input placeholder="Ghi chú vấn đề..." /></td>
-          <td>
-            <div class="action-group">
-              <button class="btn-tracuu" onclick="traCuu(this)">
-                Tra cứu
-              </button>
-              <button class="btn-luu" onclick="luuSheet(this)">Lưu</button>
-            </div>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+      <div id="detailCard" class="detail-card">
+        <div class="detail-title">
+          <i class="fa-solid fa-circle-info"></i> Thông tin chi tiết doanh
+          nghiệp
+        </div>
+        <div class="detail-grid">
+          <div class="detail-label">Tên CTY:</div>
+          <div id="txtTencty" class="detail-value">Chưa có dữ liệu</div>
 
-    <div id="detailCard" class="detail-card">
-      <div class="detail-title">
-        <i class="fa-solid fa-circle-info"></i> Thông tin chi tiết doanh nghiệp
+          <div class="detail-label">Người đại diện:</div>
+          <div id="txtNguoiDaiDien" class="detail-value">Chưa có dữ liệu</div>
+
+          <div class="detail-label">Địa chỉ trụ sở:</div>
+          <div id="txtDiaChi" class="detail-value">Chưa có dữ liệu</div>
+
+          <div class="detail-label">Trạng thái MST:</div>
+          <div id="txtTrangThai" class="detail-value">Chưa có dữ liệu</div>
+
+          <div class="detail-label">Cơ quan thuế:</div>
+          <div id="txtCoQuanThue" class="detail-value">Chưa có dữ liệu</div>
+
+          <div class="detail-label">Tên Giao Dịch:</div>
+          <div id="txtTenGiaoDich" class="detail-value">Chưa có dữ liệu</div>
+        </div>
       </div>
-      <div class="detail-grid">
-        <div class="detail-label">Tên CTY:</div>
-        <div id="txtTencty" class="detail-value">Chưa có dữ liệu</div>
 
-        <div class="detail-label">Người đại diện:</div>
-        <div id="txtNguoiDaiDien" class="detail-value">Chưa có dữ liệu</div>
-
-        <div class="detail-label">Địa chỉ trụ sở:</div>
-        <div id="txtDiaChi" class="detail-value">Chưa có dữ liệu</div>
-
-        <div class="detail-label">Trạng thái MST:</div>
-        <div id="txtTrangThai" class="detail-value">Chưa có dữ liệu</div>
-
-        <div class="detail-label">Cơ quan thuế:</div>
-        <div id="txtCoQuanThue" class="detail-value">Chưa có dữ liệu</div>
-
-        <div class="detail-label">Tên Giao Dịch:</div>
-        <div id="txtTenGiaoDich" class="detail-value">Chưa có dữ liệu</div>
-      </div>
+      <!-- <button class="btn-themdong" onclick="themDong()">+ Thêm dòng mới</button> -->
     </div>
 
-    <!-- <button class="btn-themdong" onclick="themDong()">+ Thêm dòng mới</button> -->
-  </div>
+    <script>
+      function themDong() {
+        const tbody = document.querySelector("#tblData tbody");
+        const row = document.createElement("tr");
 
-  <script>
-    function themDong() {
-      const tbody = document.querySelector("#tblData tbody");
-      const row = document.createElement("tr");
-
-      row.innerHTML = `
+        row.innerHTML = `
           <td><input class="mst" placeholder="Nhập MST..."></td>
           <td><input placeholder="Nhập SĐT..."></td>
           <td><input class="tencty" placeholder="Tên công ty tự điền..." readonly></td>
@@ -112,231 +123,250 @@
             </div>
           </td>
         `;
-      tbody.appendChild(row);
-    }
-
-    async function traCuu(btn) {
-      const row = btn.closest("tr");
-      const mst = row.querySelector(".mst").value.trim();
-
-      row.dataset.tracuu = "false";
-
-      if (!mst) {
-        alert("Vui lòng nhập MST");
-        return;
+        tbody.appendChild(row);
       }
 
-      const oTenCty = row.querySelector(".tencty");
-      if (oTenCty) {
-        oTenCty.style.backgroundColor = "";
-        oTenCty.style.borderColor = "";
-        oTenCty.style.color = "";
-        oTenCty.value = "Đang tra cứu...";
-      }
+      async function traCuu(btn) {
+        const row = btn.closest("tr");
+        const mst = row.querySelector(".mst").value.trim();
 
-      try {
-        // Gọi trực tiếp đến file api.php trên cùng Server PHP (localhost:8000)
-        const response = await fetch("api.php?mst=" + encodeURIComponent(mst));
-        const data = await response.json();
-
-        if (data.success) {
-          // 1. Điền tên công ty vào ô input của dòng hiện tại trong bảng
-          row.querySelector(".tencty").value = data.ten_cong_ty;
-          // Đánh dấu đã tra cứu thành công
-          row.dataset.tracuu = "true";
-
-          // 2. Điền dữ liệu vào khung chi tiết (Detail Card) phía dưới
-          const detailCard = document.getElementById("detailCard");
-          if (detailCard) {
-            document.getElementById("txtTencty").innerText = data.ten_cong_ty;
-            document.getElementById("txtNguoiDaiDien").innerText = data.nguoi_dai_dien;
-            document.getElementById("txtDiaChi").innerText = data.dia_chi;
-
-            // ĐOẠN BỔ SUNG: Gán dữ liệu cho 3 ô mới bạn vừa thêm vào giao diện
-            // Bạn hãy kiểm tra xem id của 3 thẻ hiển thị mới trong file html có đúng thế này không nhé
-            if (document.getElementById("txtTrangThai")) {
-              document.getElementById("txtTrangThai").innerText = data.trang_thai;
-            }
-            if (document.getElementById("txtCoQuanThue")) {
-              document.getElementById("txtCoQuanThue").innerText = data.co_quan_thue;
-            }
-            if (document.getElementById("txtTenGiaoDich")) {
-              document.getElementById("txtTenGiaoDich").innerText = data.ten_giao_dich;
-            }
-
-            // Hiển thị khung Detail Card mượt mà lên màn hình
-            detailCard.classList.add("show");
-          }
-        } else {
-          row.querySelector(".tencty").value = "Không tìm thấy công ty!";
-          row.dataset.tracuu = "false";
-          document.getElementById("detailCard").classList.remove("show");
-        }
-      } catch (err) {
-        console.error(err);
-        row.querySelector(".tencty").value = "";
-        alert("Tra cứu thất bại (Hãy kiểm tra Server PHP đã bật chưa)");
         row.dataset.tracuu = "false";
-      }
-    }
 
-    async function luuSheet(btn) {
-      const oldText = btn.innerText;
-      const row = btn.closest("tr");
-      // Bắt buộc phải tra cứu trước khi lưu
-      if (row.dataset.tracuu !== "true") {
-
-        alert("Vui lòng tra cứu mã số thuế trước khi lưu.");
-
-        row.querySelector(".mst").focus();
-
-        return;
-      }
-
-      // 1. LẤY ĐỐI TƯỢNG CÁC Ô INPUT (Để nhuộm màu viền đỏ khi lỗi)
-      const oMst = row.cells[0].querySelector("input");
-      const oSdt = row.cells[1].querySelector("input");
-      const oTenCty = row.cells[2].querySelector("input");
-      const dichVuValue = row.cells[3].querySelector("select").value;
-      const tenValue = row.cells[4].querySelector("input").value.trim();
-      const oVande = row.cells[5].querySelector("input");
-
-      // 2. RESET: Xóa bỏ màu đỏ lỗi của lần bấm trước đó trên các ô Input
-      oMst.classList.remove("input-error");
-      oSdt.classList.remove("input-error");
-      oTenCty.classList.remove("input-error");
-      oVande.classList.remove("input-error");
-
-      // 3. KIỂM TRA: Ô nào trống thì vỗ class lỗi vào ô Input đó
-      let hopLe = true;
-
-      // Lấy giá trị đã cắt khoảng trắng để kiểm tra
-      const mstValue = oMst.value.trim();
-      const sdtValue = oSdt.value.trim();
-      const tenCtyValue = oTenCty.value.trim();
-      const vandeValue = oVande.value.trim();
-
-      if (!mstValue) {
-        oMst.classList.add("input-error");
-        hopLe = false;
-      }
-      if (!sdtValue) {
-        oSdt.classList.add("input-error");
-        hopLe = false;
-      }
-      if (!tenCtyValue) {
-        oTenCty.classList.add("input-error");
-        hopLe = false;
-      }
-      if (!vandeValue) {
-        oVande.classList.add("input-error");
-        hopLe = false;
-      }
-
-      // Nếu có ít nhất 1 ô bị trống, dừng hàm ngay lập tức không cho lưu
-      if (!hopLe) {
-        return;
-      }
-
-      const data = {
-        mst: mstValue,
-        sdt: sdtValue,
-        tencty: tenCtyValue,
-        dichvu: dichVuValue,
-        ten: tenValue,
-        vande: vandeValue,
-      };
-
-      btn.disabled = true;
-      // btn.innerText = "Đang lưu...";
-      btn.innerHTML = 'Đang lưu <i class="fa-solid fa-spinner fa-spin"></i>';
-
-      try {
-        await fetch(
-          "https://script.google.com/macros/s/AKfycbySvD8PwyYwI-_tK9GiwuwNKfpxPLvdVGrXMpndexZADzlL8JQgjLXTqk0U_9f2TdkB/exec",
-          {
-            method: "POST",
-            mode: "no-cors",
-            headers: {
-              "Content-Type": "text/plain",
-            },
-            body: JSON.stringify(data),
-          },
-        );
+        if (!mst) {
+          alert("Vui lòng nhập MST");
+          return;
+        }
 
         const oTenCty = row.querySelector(".tencty");
         if (oTenCty) {
-          oTenCty.style.backgroundColor = "#dcfce7";
-          // oTenCty.style.borderColor = "#dcfce7";
-          // oTenCty.style.color = "#dcfce7";
+          oTenCty.style.backgroundColor = "";
+          oTenCty.style.borderColor = "";
+          oTenCty.style.color = "";
+          oTenCty.value = "Đang tra cứu...";
         }
 
-        const toast = document.getElementById("toastNotification");
-        toast.className = "toast show";
+        try {
+          // Gọi trực tiếp đến file api.php trên cùng Server PHP (localhost:8000)
+          const response = await fetch(
+            "api.php?mst=" + encodeURIComponent(mst),
+          );
+          const data = await response.json();
 
-        setTimeout(function () {
-          toast.className = "toast";
-        }, 3000);
-      } catch (err) {
-        console.error(err);
-        alert("Gặp lỗi khi lưu!");
-      } finally {
-        btn.disabled = false;
-        btn.innerText = oldText;
+          // Kiểm tra nguồn dữ liệu: từ cache (database) hay từ thongtincongty.vn
+          // if (data.from_cache) {
+          //   console.log(
+          //     "[MST " +
+          //       mst +
+          //       "] Dữ liệu lấy từ CACHE (database)" +
+          //       (data.cache_outdated
+          //         ? " - đã CŨ, không lấy được dữ liệu mới"
+          //         : ""),
+          //   );
+          // } else {
+          //   console.log(
+          //     "[MST " +
+          //       mst +
+          //       "] Dữ liệu lấy MỚI từ thongtincongty.vn (và đã lưu vào cache)",
+          //   );
+          // }
+
+          if (data.success) {
+            // 1. Điền tên công ty vào ô input của dòng hiện tại trong bảng
+            row.querySelector(".tencty").value = data.ten_cong_ty;
+            // Đánh dấu đã tra cứu thành công
+            row.dataset.tracuu = "true";
+
+            // 2. Điền dữ liệu vào khung chi tiết (Detail Card) phía dưới
+            const detailCard = document.getElementById("detailCard");
+            if (detailCard) {
+              document.getElementById("txtTencty").innerText = data.ten_cong_ty;
+              document.getElementById("txtNguoiDaiDien").innerText =
+                data.nguoi_dai_dien;
+              document.getElementById("txtDiaChi").innerText = data.dia_chi;
+
+              // ĐOẠN BỔ SUNG: Gán dữ liệu cho 3 ô mới bạn vừa thêm vào giao diện
+              // Bạn hãy kiểm tra xem id của 3 thẻ hiển thị mới trong file html có đúng thế này không nhé
+              if (document.getElementById("txtTrangThai")) {
+                document.getElementById("txtTrangThai").innerText =
+                  data.trang_thai;
+              }
+              if (document.getElementById("txtCoQuanThue")) {
+                document.getElementById("txtCoQuanThue").innerText =
+                  data.co_quan_thue;
+              }
+              if (document.getElementById("txtTenGiaoDich")) {
+                document.getElementById("txtTenGiaoDich").innerText =
+                  data.ten_giao_dich;
+              }
+
+              // Hiển thị khung Detail Card mượt mà lên màn hình
+              detailCard.classList.add("show");
+            }
+          } else {
+            row.querySelector(".tencty").value = "Không tìm thấy công ty!";
+            row.dataset.tracuu = "false";
+            document.getElementById("detailCard").classList.remove("show");
+          }
+        } catch (err) {
+          console.error(err);
+          row.querySelector(".tencty").value = "";
+          alert("Tra cứu thất bại (Hãy kiểm tra Server PHP đã bật chưa)");
+          row.dataset.tracuu = "false";
+        }
       }
-    }
 
-    // Nhấn Enter trong ô MST sẽ tự động tra cứu
-    document.addEventListener("keydown", function (e) {
-      if (e.key !== "Enter") return;
+      async function luuSheet(btn) {
+        const oldText = btn.innerText;
+        const row = btn.closest("tr");
+        // Bắt buộc phải tra cứu trước khi lưu
+        if (row.dataset.tracuu !== "true") {
+          alert("Vui lòng tra cứu mã số thuế trước khi lưu.");
 
-      const input = e.target;
+          row.querySelector(".mst").focus();
 
-      // Chỉ áp dụng cho ô MST
-      if (input.classList.contains("mst")) {
+          return;
+        }
+
+        // 1. LẤY ĐỐI TƯỢNG CÁC Ô INPUT (Để nhuộm màu viền đỏ khi lỗi)
+        const oMst = row.cells[0].querySelector("input");
+        const oSdt = row.cells[1].querySelector("input");
+        const oTenCty = row.cells[2].querySelector("input");
+        const dichVuValue = row.cells[3].querySelector("select").value;
+        const tenValue = row.cells[4].querySelector("input").value.trim();
+        const oVande = row.cells[5].querySelector("input");
+
+        // 2. RESET: Xóa bỏ màu đỏ lỗi của lần bấm trước đó trên các ô Input
+        oMst.classList.remove("input-error");
+        oSdt.classList.remove("input-error");
+        oTenCty.classList.remove("input-error");
+        oVande.classList.remove("input-error");
+
+        // 3. KIỂM TRA: Ô nào trống thì vỗ class lỗi vào ô Input đó
+        let hopLe = true;
+
+        // Lấy giá trị đã cắt khoảng trắng để kiểm tra
+        const mstValue = oMst.value.trim();
+        const sdtValue = oSdt.value.trim();
+        const tenCtyValue = oTenCty.value.trim();
+        const vandeValue = oVande.value.trim();
+
+        if (!mstValue) {
+          oMst.classList.add("input-error");
+          hopLe = false;
+        }
+        if (!sdtValue) {
+          oSdt.classList.add("input-error");
+          hopLe = false;
+        }
+        if (!tenCtyValue) {
+          oTenCty.classList.add("input-error");
+          hopLe = false;
+        }
+        if (!vandeValue) {
+          oVande.classList.add("input-error");
+          hopLe = false;
+        }
+
+        // Nếu có ít nhất 1 ô bị trống, dừng hàm ngay lập tức không cho lưu
+        if (!hopLe) {
+          return;
+        }
+
+        const data = {
+          mst: mstValue,
+          sdt: sdtValue,
+          tencty: tenCtyValue,
+          dichvu: dichVuValue,
+          ten: tenValue,
+          vande: vandeValue,
+        };
+
+        btn.disabled = true;
+        // btn.innerText = "Đang lưu...";
+        btn.innerHTML = 'Đang lưu <i class="fa-solid fa-spinner fa-spin"></i>';
+
+        try {
+          await fetch(
+            "https://script.google.com/macros/s/AKfycbySvD8PwyYwI-_tK9GiwuwNKfpxPLvdVGrXMpndexZADzlL8JQgjLXTqk0U_9f2TdkB/exec",
+            {
+              method: "POST",
+              mode: "no-cors",
+              headers: {
+                "Content-Type": "text/plain",
+              },
+              body: JSON.stringify(data),
+            },
+          );
+
+          const oTenCty = row.querySelector(".tencty");
+          if (oTenCty) {
+            oTenCty.style.backgroundColor = "#dcfce7";
+            // oTenCty.style.borderColor = "#dcfce7";
+            // oTenCty.style.color = "#dcfce7";
+          }
+
+          const toast = document.getElementById("toastNotification");
+          toast.className = "toast show";
+
+          setTimeout(function () {
+            toast.className = "toast";
+          }, 3000);
+        } catch (err) {
+          console.error(err);
+          alert("Gặp lỗi khi lưu!");
+        } finally {
+          btn.disabled = false;
+          btn.innerText = oldText;
+        }
+      }
+
+      // Nhấn Enter trong ô MST sẽ tự động tra cứu
+      document.addEventListener("keydown", function (e) {
+        if (e.key !== "Enter") return;
+
+        const input = e.target;
+
+        // Chỉ áp dụng cho ô MST
+        if (input.classList.contains("mst")) {
+          e.preventDefault();
+
+          const row = input.closest("tr");
+          const btnTraCuu = row.querySelector(".btn-tracuu");
+
+          traCuu(btnTraCuu);
+        }
+      });
+
+      // ======================
+      // QUẢN LÝ TRẠNG THÁI MST
+      // ======================
+
+      // Nhấn Enter để tra cứu
+      document.addEventListener("keydown", function (e) {
+        if (e.key !== "Enter") return;
+
+        if (!e.target.classList.contains("mst")) return;
+
         e.preventDefault();
 
-        const row = input.closest("tr");
-        const btnTraCuu = row.querySelector(".btn-tracuu");
+        const row = e.target.closest("tr");
+        const btn = row.querySelector(".btn-tracuu");
 
-        traCuu(btnTraCuu);
-      }
-    });
+        traCuu(btn);
+      });
 
-    // ======================
-    // QUẢN LÝ TRẠNG THÁI MST
-    // ======================
+      // Khi sửa MST thì phải tra cứu lại
+      document.addEventListener("input", function (e) {
+        if (!e.target.classList.contains("mst")) return;
 
-    // Nhấn Enter để tra cứu
-    document.addEventListener("keydown", function (e) {
-      if (e.key !== "Enter") return;
+        const row = e.target.closest("tr");
 
-      if (!e.target.classList.contains("mst")) return;
+        // Chưa tra cứu
+        row.dataset.tracuu = "false";
 
-      e.preventDefault();
-
-      const row = e.target.closest("tr");
-      const btn = row.querySelector(".btn-tracuu");
-
-      traCuu(btn);
-    });
-
-    // Khi sửa MST thì phải tra cứu lại
-    document.addEventListener("input", function (e) {
-
-      if (!e.target.classList.contains("mst")) return;
-
-      const row = e.target.closest("tr");
-
-      // Chưa tra cứu
-      row.dataset.tracuu = "false";
-
-      // Xóa tên công ty cũ
-      row.querySelector(".tencty").value = "";
-
-      
-    });
-  </script>
-</body>
-
+        // Xóa tên công ty cũ
+        row.querySelector(".tencty").value = "";
+      });
+    </script>
+  </body>
 </html>

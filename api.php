@@ -6,6 +6,18 @@ ini_set('display_errors', 0);
 header("Access-Control-Allow-Origin: *");
 header("Content-Type: application/json; charset=UTF-8");
 
+// ==========================================================
+// CẤU HÌNH KẾT NỐI DATABASE
+// Lấy thông tin này trong cPanel > MySQL Databases
+// ==========================================================
+$db_host = "sql201.infinityfree.com";              // hoặc dạng sqlXXX.epizy.com tùy server
+$db_name = "if0_42180426_company_info";     // tên database
+$db_user = "if0_42180426";           // username database
+$db_pass = "pmeXrP1H2feFw";          // password database
+
+// Số ngày dữ liệu cache còn được coi là "mới" trước khi tra cứu lại từ nguồn
+$cache_days = 30;
+
 // 1. Lấy mã số thuế từ URL gửi lên
 $mst = isset($_GET['mst']) ? trim($_GET['mst']) : '';
 
@@ -14,14 +26,58 @@ if (empty($mst)) {
     exit;
 }
 
-// 2. Cấu hình cURL gọi trang nguồn thongtincongty.vn
+// ==========================================================
+// KẾT NỐI DATABASE (nếu lỗi, vẫn cho web hoạt động bình thường, chỉ là không cache)
+// ==========================================================
+$pdo = null;
+try {
+    $pdo = new PDO("mysql:host=$db_host;dbname=$db_name;charset=utf8mb4", $db_user, $db_pass);
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+} catch (Exception $e) {
+    $pdo = null;
+}
+
+// ==========================================================
+// 2. KIỂM TRA CACHE TRƯỚC - nếu có và còn mới thì trả về luôn
+// ==========================================================
+if ($pdo) {
+    try {
+        $stmt = $pdo->prepare("SELECT * FROM mst_cache WHERE mst = ?");
+        $stmt->execute([$mst]);
+        $cached = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if ($cached) {
+            $soNgayDaQua = (time() - strtotime($cached['updated_at'])) / 86400;
+
+            if ($soNgayDaQua <= $cache_days) {
+                echo json_encode([
+                    "success" => true,
+                    "ten_cong_ty" => $cached['ten_cong_ty'],
+                    "nguoi_dai_dien" => $cached['nguoi_dai_dien'],
+                    "dia_chi" => $cached['dia_chi'],
+                    "ten_giao_dich" => $cached['ten_giao_dich'],
+                    "co_quan_thue" => $cached['co_quan_thue'],
+                    "trang_thai" => $cached['trang_thai'],
+                    "from_cache" => true
+                ], JSON_UNESCAPED_UNICODE);
+                exit;
+            }
+        }
+    } catch (Exception $e) {
+        // Bảng chưa tạo hoặc lỗi truy vấn -> bỏ qua, tra cứu như bình thường
+    }
+}
+
+// ==========================================================
+// 3. CHƯA CÓ CACHE (HOẶC CACHE ĐÃ CŨ) -> GỌI NGUỒN NGOÀI
+// ==========================================================
 $url = "https://thongtincongty.vn/api/tax-code/request?taxCode=" . urlencode($mst) . "&returnTo=" . urlencode("/ma-so-thue");
 
 $ch = curl_init();
 curl_setopt($ch, CURLOPT_URL, $url);
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true); 
-curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); 
+curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
 curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
 curl_setopt($ch, CURLOPT_TIMEOUT, 15);
 curl_setopt($ch, CURLOPT_USERAGENT, "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
@@ -29,11 +85,27 @@ curl_setopt($ch, CURLOPT_USERAGENT, "Mozilla/5.0 (Windows NT 10.0; Win64; x64) A
 $html = curl_exec($ch);
 
 if (empty($html)) {
+    // Nếu nguồn ngoài lỗi nhưng vẫn có cache cũ (dù đã quá hạn), trả tạm cache cũ còn hơn không có
+    if ($pdo && isset($cached) && $cached) {
+        echo json_encode([
+            "success" => true,
+            "ten_cong_ty" => $cached['ten_cong_ty'],
+            "nguoi_dai_dien" => $cached['nguoi_dai_dien'],
+            "dia_chi" => $cached['dia_chi'],
+            "ten_giao_dich" => $cached['ten_giao_dich'],
+            "co_quan_thue" => $cached['co_quan_thue'],
+            "trang_thai" => $cached['trang_thai'],
+            "from_cache" => true,
+            "cache_outdated" => true
+        ], JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+
     echo json_encode(["success" => false, "message" => "Không tải được dữ liệu từ trang nguồn"], JSON_UNESCAPED_UNICODE);
     exit;
 }
 
-// 3. CHIẾN THUẬT QUÉT XPATH CHUẨN XÁC THEO CÁC MỐC CHỮ MỚI
+// 4. CHIẾN THUẬT QUÉT XPATH CHUẨN XÁC THEO CÁC MỐC CHỮ MỚI
 $tenCongTy = "Chưa cập nhật";
 $nguoiDaiDien = "Chưa cập nhật";
 $diaChi = "Chưa cập nhật";
@@ -46,28 +118,27 @@ $dom = new DOMDocument();
 @$dom->loadHTML('<?xml encoding="UTF-8">' . $html);
 $xpath = new DOMXPath($dom);
 
-// 1. Bóc Tên công ty từ thẻ <title>
+// 4.1. Bóc Tên công ty từ thẻ <title>
 if (preg_match('/<title>(.*?)<\/title>/iu', $html, $matches)) {
     $titleText = trim($matches[1]);
-    
+
     // BƯỚC CẮT ĐUÔI: Loại bỏ phần sau dấu gạch đứng "|" trước
     $cleanText = explode('|', $titleText)[0];
-    
+
     // BƯỚC CẮT ĐẦU: Xóa MST và dấu gạch ngang ở đầu chuỗi
-    // Regex này dịch là: Tìm từ đầu chuỗi (^) các chữ số, dấu trừ, khoảng trắng cho đến khi gặp dấu gạch ngang " - " đầu tiên thì xóa sạch.
     $tenCongTy = preg_replace('/^[0-9\s-]+-\s+/iu', '', $cleanText);
-    
+
     // Làm sạch khoảng trắng thừa 2 đầu còn sót lại
     $tenCongTy = trim($tenCongTy);
 }
 
-// 2. Dùng XPath bốc "Người đại diện"
+// 4.2. Dùng XPath bốc "Người đại diện"
 $nguoiDaiDienNode = $xpath->query("//td[contains(text(), 'Người đại diện') or contains(text(), 'Đại diện')]/following-sibling::td[1]");
 if ($nguoiDaiDienNode->length > 0) {
     $nguoiDaiDien = trim($nguoiDaiDienNode->item(0)->nodeValue);
 }
 
-// 3. Dùng XPath bốc "Địa chỉ trụ sở"
+// 4.3. Dùng XPath bốc "Địa chỉ trụ sở"
 $diaChiNode = $xpath->query("//td[contains(text(), 'Địa chỉ') or contains(text(), 'Trụ sở')]/following-sibling::td[1]");
 if ($diaChiNode->length > 0) {
     $rawDiaChi = $diaChiNode->item(0)->nodeValue;
@@ -78,19 +149,19 @@ if ($diaChiNode->length > 0) {
     }
 }
 
-// 4. Dùng XPath bốc "Tên giao dịch" (Tên tiếng Anh)
+// 4.4. Dùng XPath bốc "Tên giao dịch" (Tên tiếng Anh)
 $tenGiaoDichNode = $xpath->query("//td[contains(text(), 'Tên giao dịch')]/following-sibling::td[1]");
 if ($tenGiaoDichNode->length > 0) {
     $tenGiaoDich = trim($tenGiaoDichNode->item(0)->nodeValue);
 }
 
-// 5. Dùng XPath bốc "Cơ quan thuế quản lý"
+// 4.5. Dùng XPath bốc "Cơ quan thuế quản lý"
 $coQuanThueNode = $xpath->query("//td[contains(text(), 'Cơ quan thuế')]/following-sibling::td[1]");
 if ($coQuanThueNode->length > 0) {
     $coQuanThue = trim($coQuanThueNode->item(0)->nodeValue);
 }
 
-// 6. Dùng XPath bốc "Trạng thái hoạt động"
+// 4.6. Dùng XPath bốc "Trạng thái hoạt động"
 $trangThaiNode = $xpath->query("//td[contains(text(), 'Trạng thái')]/following-sibling::td[1]");
 if ($trangThaiNode->length > 0) {
     $trangThai = trim($trangThaiNode->item(0)->nodeValue);
@@ -110,15 +181,45 @@ $tenGiaoDich = clean_output($tenGiaoDich);
 $coQuanThue = clean_output($coQuanThue);
 $trangThai = clean_output($trangThai);
 
-// 4. Trả kết quả JSON đầy đủ các trường mới về cho Frontend
+$tenCongTy = !empty($tenCongTy) ? $tenCongTy : "Chưa cập nhật";
+$nguoiDaiDien = !empty($nguoiDaiDien) ? $nguoiDaiDien : "Chưa cập nhật";
+$diaChi = !empty($diaChi) ? $diaChi : "Chưa cập nhật";
+$tenGiaoDich = !empty($tenGiaoDich) ? $tenGiaoDich : "Chưa cập nhật";
+$coQuanThue = !empty($coQuanThue) ? $coQuanThue : "Chưa cập nhật";
+$trangThai = !empty($trangThai) ? $trangThai : "Chưa cập nhật";
+
+// ==========================================================
+// 5. LƯU/CẬP NHẬT VÀO DATABASE ĐỂ LẦN SAU TRA CỨU NHANH HƠN
+// ==========================================================
+if ($pdo) {
+    try {
+        $stmt = $pdo->prepare("
+            INSERT INTO mst_cache (mst, ten_cong_ty, nguoi_dai_dien, dia_chi, ten_giao_dich, co_quan_thue, trang_thai, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, NOW())
+            ON DUPLICATE KEY UPDATE
+                ten_cong_ty = VALUES(ten_cong_ty),
+                nguoi_dai_dien = VALUES(nguoi_dai_dien),
+                dia_chi = VALUES(dia_chi),
+                ten_giao_dich = VALUES(ten_giao_dich),
+                co_quan_thue = VALUES(co_quan_thue),
+                trang_thai = VALUES(trang_thai),
+                updated_at = NOW()
+        ");
+        $stmt->execute([$mst, $tenCongTy, $nguoiDaiDien, $diaChi, $tenGiaoDich, $coQuanThue, $trangThai]);
+    } catch (Exception $e) {
+        // Lỗi lưu cache không ảnh hưởng đến việc trả kết quả cho người dùng
+    }
+}
+
+// 6. Trả kết quả JSON đầy đủ các trường về cho Frontend
 echo json_encode([
-    "success" => true, 
-    "ten_cong_ty" => !empty($tenCongTy) ? $tenCongTy : "Chưa cập nhật",
-    "nguoi_dai_dien" => !empty($nguoiDaiDien) ? $nguoiDaiDien : "Chưa cập nhật",
-    "dia_chi" => !empty($diaChi) ? $diaChi : "Chưa cập nhật",
-    "ten_giao_dich" => !empty($tenGiaoDich) ? $tenGiaoDich : "Chưa cập nhật",
-    "co_quan_thue" => !empty($coQuanThue) ? $coQuanThue : "Chưa cập nhật",
-    "trang_thai" => !empty($trangThai) ? $trangThai : "Chưa cập nhật"
+    "success" => true,
+    "ten_cong_ty" => $tenCongTy,
+    "nguoi_dai_dien" => $nguoiDaiDien,
+    "dia_chi" => $diaChi,
+    "ten_giao_dich" => $tenGiaoDich,
+    "co_quan_thue" => $coQuanThue,
+    "trang_thai" => $trangThai,
+    "from_cache" => false
 ], JSON_UNESCAPED_UNICODE);
 exit;
-?>

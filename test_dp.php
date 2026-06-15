@@ -3,10 +3,10 @@
 // FILE NÀY CHỈ DÙNG ĐỂ KIỂM TRA - XÓA SAU KHI DÙNG XONG
 header("Content-Type: text/plain; charset=UTF-8");
 
-$db_host = "sql201.infinityfree.com";
-$db_name = "if0_42180426_company_info";
-$db_user = "if0_42180426";
-$db_pass = "pmeXrP1H2feFw"; // <-- sửa thành password thật giống trong api.php
+$db_host = "sql211.infinityfree.com";              // hoặc dạng sqlXXX.epizy.com tùy server
+$db_name = "if0_42184286_prm";     // tên database
+$db_user = "if0_42184286";           // username database
+$db_pass = "k1Hw1GeNoTFC";// <-- sửa thành password thật giống trong api.php
 
 echo "Đang thử kết nối...\n";
 

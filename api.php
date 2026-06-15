@@ -10,10 +10,10 @@ header("Content-Type: application/json; charset=UTF-8");
 // CẤU HÌNH KẾT NỐI DATABASE
 // Lấy thông tin này trong cPanel > MySQL Databases
 // ==========================================================
-$db_host = "sql201.infinityfree.com";              // hoặc dạng sqlXXX.epizy.com tùy server
-$db_name = "if0_42180426_company_info";     // tên database
-$db_user = "if0_42180426";           // username database
-$db_pass = "pmeXrP1H2feFw";          // password database
+$db_host = "sql211.infinityfree.com";              // hoặc dạng sqlXXX.epizy.com tùy server
+$db_name = "if0_42184286_prm";     // tên database
+$db_user = "if0_42184286";           // username database
+$db_pass = "k1Hw1GeNoTFC";          // password database
 
 // Số ngày dữ liệu cache còn được coi là "mới" trước khi tra cứu lại từ nguồn
 $cache_days = 30;
@@ -256,8 +256,8 @@ if ($pdo) {
         ");
         $stmt->execute([$mst, $tenCongTy, $nguoiDaiDien, $diaChi, $tenGiaoDich, $coQuanThue, $trangThai]);
     } catch (Exception $e) {
-        // Lỗi lưu cache không ảnh hưởng đến việc trả kết quả cho người dùng
-    }
+    die($e->getMessage());
+}
 }
 
 // 6. Trả kết quả JSON đầy đủ các trường về cho Frontend

@@ -111,7 +111,10 @@ $nguoiDaiDien = "Chưa cập nhật";
 $diaChi = "Chưa cập nhật";
 $tenGiaoDich = "Chưa cập nhật";
 $coQuanThue = "Chưa cập nhật";
+$canBoThue = "Chưa cập nhật";
 $trangThai = "Chưa cập nhật";
+$ppTinhThue = "Chưa cập nhật";
+$nganhNghe = "Chưa cập nhật";
 
 // Khởi tạo DOM Document đọc mã UTF-8 sạch lỗi font
 $dom = new DOMDocument();
@@ -139,7 +142,7 @@ if ($nguoiDaiDienNode->length > 0) {
 }
 
 // 4.3. Dùng XPath bốc "Địa chỉ trụ sở"
-$diaChiNode = $xpath->query("//td[contains(text(), 'Địa chỉ') or contains(text(), 'Trụ sở')]/following-sibling::td[1]");
+$diaChiNode = $xpath->query("//td[contains(text(), 'Địa chỉ') or contains(text(), 'Trụ sở')]/following-sibling::td[1]/div[1]");
 if ($diaChiNode->length > 0) {
     $rawDiaChi = $diaChiNode->item(0)->nodeValue;
     if (str_contains($rawDiaChi, '- Căn cứ')) {
@@ -167,6 +170,32 @@ if ($trangThaiNode->length > 0) {
     $trangThai = trim($trangThaiNode->item(0)->nodeValue);
 }
 
+$canBoThueNode = $xpath->query("//td[contains(text(), 'Cán bộ')]/following-sibling::td[1]"); 
+if ($canBoThueNode->length > 0) {
+    $canBoThue = trim($canBoThueNode->item(0)->nodeValue);
+}
+
+$ppTinhthueNode = $xpath->query("//td[contains(text(), 'PP tính thuế')]/following-sibling::td[1]"); 
+if ($ppTinhthueNode->length > 0) {
+    $ppTinhThue = trim($ppTinhthueNode->item(0)->nodeValue);
+}
+
+$nganhNgheNode = $xpath->query("//td[contains(text(), 'Ngành nghề chính')]/following-sibling::td[1]/span[1]");
+if ($nganhNgheNode->length > 0) {
+    $nganhNghe = trim($nganhNgheNode->item(0)->nodeValue);
+}
+
+//  SỬA LẠI ĐOẠN NÀY:
+// 4.7. Dùng XPath bốc "Cán bộ thuế" 
+// $canBoThueNode = $xpath->query("//td[contains(text(), 'Cán bộ')]/following-sibling::td[1]"); 
+// if ($canBoThueNode->length > 0) {
+//     $canBoThue = trim($canBoThueNode->item(0)->nodeValue);
+// } else {
+//     $canBoThue = "Chưa cập nhật";
+// }
+
+
+
 // Hàm dọn dẹp các ký tự khoảng trắng hoặc định dạng dư thừa ở đầu/cuối chuỗi
 function clean_output($str) {
     $str = html_entity_decode($str, ENT_QUOTES, 'UTF-8');
@@ -174,19 +203,39 @@ function clean_output($str) {
     return trim($str, " :-,");
 }
 
+// Hàm dọn dẹp các ký tự khoảng trắng hoặc định dạng dư thừa ở đầu/cuối chuỗi
+// function clean_output($str) {
+//     // Nếu vô tình truyền vào một đối tượng DOMNodeList, lấy text của phần tử đầu tiên
+//     if ($str instanceof DOMNodeList) {
+//         $str = ($str->length > 0) ? $str->item(0)->nodeValue : '';
+//     }
+
+//     $str = html_entity_decode($str, ENT_QUOTES, 'UTF-8');
+//     $str = str_replace(['\"', '\\'], ['', ''], $str);
+//     return trim($str, " :-,");
+// }
+
 $tenCongTy = clean_output($tenCongTy);
 $nguoiDaiDien = clean_output($nguoiDaiDien);
 $diaChi = clean_output($diaChi);
 $tenGiaoDich = clean_output($tenGiaoDich);
 $coQuanThue = clean_output($coQuanThue);
+$canBoThue = clean_output($canBoThue);
+$ppTinhThue = clean_output($ppTinhThue);
+$nganhNghe = clean_output($nganhNghe);
 $trangThai = clean_output($trangThai);
+
 
 $tenCongTy = !empty($tenCongTy) ? $tenCongTy : "Chưa cập nhật";
 $nguoiDaiDien = !empty($nguoiDaiDien) ? $nguoiDaiDien : "Chưa cập nhật";
 $diaChi = !empty($diaChi) ? $diaChi : "Chưa cập nhật";
+$canBoThue = !empty($canBoThue) ? $canBoThue : "Chưa cập nhật";
 $tenGiaoDich = !empty($tenGiaoDich) ? $tenGiaoDich : "Chưa cập nhật";
 $coQuanThue = !empty($coQuanThue) ? $coQuanThue : "Chưa cập nhật";
+$ppTinhThue = !empty($ppTinhThue) ? $ppTinhThue : "Chưa cập nhật";
+$nganhNghe = !empty($nganhNghe) ? $nganhNghe : "Chưa cập nhật";
 $trangThai = !empty($trangThai) ? $trangThai : "Chưa cập nhật";
+    
 
 // ==========================================================
 // 5. LƯU/CẬP NHẬT VÀO DATABASE ĐỂ LẦN SAU TRA CỨU NHANH HƠN
@@ -218,7 +267,10 @@ echo json_encode([
     "nguoi_dai_dien" => $nguoiDaiDien,
     "dia_chi" => $diaChi,
     "ten_giao_dich" => $tenGiaoDich,
+    "can_bo_thue" => $canBoThue,
     "co_quan_thue" => $coQuanThue,
+    "pp_tinh_thue" => $ppTinhThue,
+    "nganh_nghe" => $nganhNghe,
     "trang_thai" => $trangThai,
     "from_cache" => false
 ], JSON_UNESCAPED_UNICODE);

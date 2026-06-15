@@ -40,7 +40,7 @@
         <tbody>
           <tr>
             <td><input class="mst" placeholder="Nhập MST..." /></td>
-            <td><input placeholder="Nhập SĐT..." /></td>
+            <td><input class="sdt" placeholder="Nhập SĐT..." /></td>
             <td>
               <input
                 class="tencty"
@@ -89,6 +89,15 @@
 
           <div class="detail-label">Cơ quan thuế:</div>
           <div id="txtCoQuanThue" class="detail-value">Chưa có dữ liệu</div>
+
+          <div class="detail-label">Cán bộ thuế:</div>
+          <div id="txtCanBoThue" class="detail-value">Chưa có dữ liệu</div>
+
+          <div class="detail-label">Phương pháp tính thuế:</div>
+          <div id="txtPPTinhThue" class="detail-value">Chưa có dữ liệu</div>
+
+          <div class="detail-label">Ngành nghề chính:</div>
+          <div id="txtNganhNghe" class="detail-value">Chưa có dữ liệu</div>
 
           <div class="detail-label">Tên Giao Dịch:</div>
           <div id="txtTenGiaoDich" class="detail-value">Chưa có dữ liệu</div>
@@ -194,13 +203,131 @@
                 document.getElementById("txtCoQuanThue").innerText =
                   data.co_quan_thue;
               }
+              if (document.getElementById("txtCanBoThue")) {
+                document.getElementById("txtCanBoThue").innerText =
+                  data.can_bo_thue;
+              }
+              if (document.getElementById("txtNganhNghe")) {
+                document.getElementById("txtNganhNghe").innerText =
+                  data.nganh_nghe;
+              }
+              if (document.getElementById("txtPPTinhThue")) {
+                document.getElementById("txtPPTinhThue").innerText =
+                  data.pp_tinh_thue;
+              }
               if (document.getElementById("txtTenGiaoDich")) {
                 document.getElementById("txtTenGiaoDich").innerText =
                   data.ten_giao_dich;
               }
 
               // Hiển thị khung Detail Card mượt mà lên màn hình
-              detailCard.classList.add("show");
+              // 2. Điền dữ liệu vào khung chi tiết (Detail Card) phía dưới
+              const detailCard = document.getElementById("detailCard");
+              if (detailCard) {
+                // Tạo danh sách ánh xạ giữa ID thẻ hiển thị và trường dữ liệu từ JSON trả về
+                const fields = [
+                  { id: "txtTencty", value: data.ten_cong_ty },
+                  { id: "txtTenGiaoDich", value: data.ten_giao_dich },
+                  { id: "txtNguoiDaiDien", value: data.nguoi_dai_dien },
+                  { id: "txtDiaChi", value: data.dia_chi },
+                  { id: "txtTrangThai", value: data.trang_thai },
+                  { id: "txtCoQuanThue", value: data.co_quan_thue },
+                  { id: "txtCanBoThue", value: data.can_bo_thue },
+                  { id: "txtPPTinhThue", value: data.pp_tinh_thue },
+                  { id: "txtNganhNgheChinh", value: data.nganh_nghe_chinh },
+                  { id: "txtTenVietTat", value: data.ten_viet_tat },
+                ];
+
+                fields.forEach((field) => {
+                  const valueElement = document.getElementById(field.id);
+                  if (valueElement) {
+                    // Tìm thẻ label đứng ngay trước nó trong cấu trúc HTML
+                    const labelElement = valueElement.previousElementSibling;
+
+                    // Điều kiện kiểm tra dữ liệu trống hoặc chưa cập nhật
+                    if (
+                      !field.value ||
+                      field.value === "Chưa cập nhật" ||
+                      field.value.trim() === ""
+                    ) {
+                      // Ẩn cả tiêu đề và nội dung
+                      valueElement.style.display = "none";
+                      if (
+                        labelElement &&
+                        labelElement.classList.contains("detail-label")
+                      ) {
+                        labelElement.style.display = "none";
+                      }
+                    } else {
+                      // Có dữ liệu hợp lệ: Hiển thị lại và điền chữ vào
+                      valueElement.style.display = "";
+                      valueElement.innerText = field.value;
+                      if (
+                        labelElement &&
+                        labelElement.classList.contains("detail-label")
+                      ) {
+                        labelElement.style.display = "";
+                      }
+                    }
+                  }
+                });
+
+                // Hiển thị khung Detail Card mượt mà lên màn hình
+                // 2. Điền dữ liệu vào khung chi tiết (Detail Card) phía dưới
+                const detailCard = document.getElementById("detailCard");
+                if (detailCard) {
+                  // Tạo danh sách ánh xạ giữa ID thẻ hiển thị và trường dữ liệu từ JSON trả về
+                  const fields = [
+                    { id: "txtTencty", value: data.ten_cong_ty },
+                    { id: "txtTenGiaoDich", value: data.ten_giao_dich },
+                    { id: "txtNguoiDaiDien", value: data.nguoi_dai_dien },
+                    { id: "txtDiaChi", value: data.dia_chi },
+                    { id: "txtTrangThai", value: data.trang_thai },
+                    { id: "txtCoQuanThue", value: data.co_quan_thue },
+                    { id: "txtPPTinhThue", value: data.pp_tinh_thue },
+                    { id: "txtCanBoThue", value: data.can_bo_thue },
+                    { id: "txtNganhNghe", value: data.nganh_nghe },
+                    { id: "txtTenVietTat", value: data.ten_viet_tat },
+                  ];
+
+                  fields.forEach((field) => {
+                    const valueElement = document.getElementById(field.id);
+                    if (valueElement) {
+                      // Tìm thẻ label đứng ngay trước nó trong cấu trúc HTML
+                      const labelElement = valueElement.previousElementSibling;
+
+                      // Điều kiện kiểm tra dữ liệu trống hoặc chưa cập nhật
+                      if (
+                        !field.value ||
+                        field.value === "Chưa cập nhật" ||
+                        field.value.trim() === ""
+                      ) {
+                        // Ẩn cả tiêu đề và nội dung
+                        valueElement.style.display = "none";
+                        if (
+                          labelElement &&
+                          labelElement.classList.contains("detail-label")
+                        ) {
+                          labelElement.style.display = "none";
+                        }
+                      } else {
+                        // Có dữ liệu hợp lệ: Hiển thị lại và điền chữ vào
+                        valueElement.style.display = "";
+                        valueElement.innerText = field.value;
+                        if (
+                          labelElement &&
+                          labelElement.classList.contains("detail-label")
+                        ) {
+                          labelElement.style.display = "";
+                        }
+                      }
+                    }
+                  });
+
+                  // Hiển thị khung Detail Card mượt mà lên màn hình
+                  detailCard.classList.add("show");
+                }
+              }
             }
           } else {
             row.querySelector(".tencty").value = "Không tìm thấy công ty!";
@@ -321,21 +448,21 @@
       }
 
       // Nhấn Enter trong ô MST sẽ tự động tra cứu
-      document.addEventListener("keydown", function (e) {
-        if (e.key !== "Enter") return;
+      // document.addEventListener("keydown", function (e) {
+      //   if (e.key !== "Enter") return;
 
-        const input = e.target;
+      //   const input = e.target;
 
-        // Chỉ áp dụng cho ô MST
-        if (input.classList.contains("mst")) {
-          e.preventDefault();
+      //   // Chỉ áp dụng cho ô MST
+      //   if (input.classList.contains("mst")) {
+      //     e.preventDefault();
 
-          const row = input.closest("tr");
-          const btnTraCuu = row.querySelector(".btn-tracuu");
+      //     const row = input.closest("tr");
+      //     const btnTraCuu = row.querySelector(".btn-tracuu");
 
-          traCuu(btnTraCuu);
-        }
-      });
+      //     traCuu(btnTraCuu);
+      //   }
+      // });
 
       // ======================
       // QUẢN LÝ TRẠNG THÁI MST
@@ -366,6 +493,7 @@
 
         // Xóa tên công ty cũ
         row.querySelector(".tencty").value = "";
+        row.querySelector(".sdt").value = "";
       });
     </script>
   </body>
